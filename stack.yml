@@ -1,0 +1,52 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  notify-slack:
+    lang: go
+    handler: ./notify-slack
+    image: rgee0/notify-slack:latest
+    environment:
+      write_debug: true
+      slack_token: "top-cat-token"
+      slack_room: "CH1AH29MK"
+    secrets:
+    - top-cat-token
+    annotations:
+      topic: cats
+
+  post-tweet:
+    lang: python
+    handler: ./post-tweet
+    image: rgee0/post-tweet:latest
+    secrets:
+    - consumer-key
+    - consumer-secret
+    - access-token
+    - access-secret
+    annotations:
+      topic: not-cats
+
+  cat-sifter:
+    lang: php7
+    handler: ./cat-sifter
+    image: rgee0/cat-sifter:latest
+    environment:
+      read_timeout: 30s
+      write_timeout: 30s
+
+  db-stasher:
+    lang: golang-http
+    handler: ./db-stasher
+    image: rgee0/db-stasher:latest
+    environment:
+      postgres_db: defaultdb
+      postgres_sslmode: require
+      postgres_port: 25060
+    secrets:
+      - db-password
+      - db-username
+      - db-host
+    annotations:
+      topic: cats,not-cats
